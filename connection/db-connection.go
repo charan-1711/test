@@ -1,4 +1,4 @@
-package database
+package connection
 
 import (
 	"database/sql"
@@ -16,7 +16,7 @@ func ConnectToDB() {
 		log.Fatal("Error loading env file")
 	}
 
-	DB, err := sql.Open(
+	db, err := sql.Open(
 		"postgres",
 		fmt.Sprintf(
 			"host=%s user=%s dbname=%s password=%s sslmode=disable",
@@ -31,9 +31,9 @@ func ConnectToDB() {
 		log.Fatal("Error connecting to database")
 	}
 
-	if err = DB.Ping(); err != nil {
+	if err = db.Ping(); err != nil {
 		log.Fatal("Error connecting to database")
 	}
-
+	DB = db
 	log.Println("Successfully connected to database")
 }

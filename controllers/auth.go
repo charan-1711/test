@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"todo-list/database"
+	"todo-list/connection"
 	"todo-list/models"
 	"todo-list/utils"
 
@@ -40,7 +40,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	storedUser := new(models.User)
 	// get the registered user data
-	err := database.DB.QueryRow("SELECT * FROM users WHERE username = $1", user.Name).
+	err := connection.DB.QueryRow("SELECT * FROM users WHERE username = $1", user.Name).
 		Scan(&storedUser.UID, &storedUser.Name, &storedUser.Password)
 
 	if err == sql.ErrNoRows { // check if user not found
@@ -85,7 +85,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -109,7 +109,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	storedUser := new(models.User)
-	database.DB.QueryRow("SELECT * FROM users WHERE username = $1", user.Name).
+	connection.DB.QueryRow("SELECT * FROM users WHERE username = $1", user.Name).
 		Scan(&storedUser.UID, &storedUser.Name, &storedUser.Password)
 
 	if storedUser.Name != "" { // check if user already exists
@@ -118,7 +118,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// insert the new user details
-	_, err := database.DB.Exec(
+	_, err := connection.DB.Exec(
 		"INSERT INTO users(username, password) values($1, $2)",
 		user.Name,
 		user.Password,

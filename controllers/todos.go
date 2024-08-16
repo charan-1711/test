@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"todo-list/database"
+	"todo-list/connection"
 	"todo-list/models"
 	"todo-list/utils"
 )
@@ -36,7 +36,7 @@ func CreateTodo(w http.ResponseWriter, r *http.Request) {
 
 	userId := r.Context().Value("userId").(int)
 
-	_, err = database.DB.Exec(
+	_, err = connection.DB.Exec(
 		"INSERT INTO todos(title, current_status, u_id) VALUES($1, $2, $3)",
 		todo.Title,
 		todo.Status,
@@ -78,7 +78,7 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var storedUserId int
-	err = database.DB.QueryRow("SELECT u_id FROM todos WHERE t_id = $1", todo.TID).
+	err = connection.DB.QueryRow("SELECT u_id FROM todos WHERE t_id = $1", todo.TID).
 		Scan(&storedUserId)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Todo not found", http.StatusNotFound)
@@ -97,7 +97,7 @@ func DeleteTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = database.DB.Exec("DELETE FROM todos WHERE t_id = $1", todo.TID)
+	_, err = connection.DB.Exec("DELETE FROM todos WHERE t_id = $1", todo.TID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,7 +138,7 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var storedUserId int
-	err = database.DB.QueryRow("SELECT u_id FROM todos WHERE t_id = $1", todo.TID).
+	err = connection.DB.QueryRow("SELECT u_id FROM todos WHERE t_id = $1", todo.TID).
 		Scan(&storedUserId)
 
 	if err == sql.ErrNoRows {
@@ -157,7 +157,7 @@ func UpdateTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = database.DB.Exec(
+	_, err = connection.DB.Exec(
 		"UPDATE todos SET title = $1, current_status = $2 WHERE t_id = $3",
 		todo.Title,
 		todo.Status,
@@ -188,7 +188,7 @@ func GetTodo(w http.ResponseWriter, r *http.Request) {
 	t_id, _ := strconv.Atoi(r.URL.Query().Get("t_id"))
 	todo := new(models.Todo)
 	var storedUserId int
-	err := database.DB.QueryRow("SELECT t_id, title, current_status, u_id FROM todos WHERE t_id = $1", t_id).
+	err := connection.DB.QueryRow("SELECT t_id, title, current_status, u_id FROM todos WHERE t_id = $1", t_id).
 		Scan(&todo.TID, &todo.Title, &todo.Status, &storedUserId)
 
 	if err == sql.ErrNoRows {
@@ -222,7 +222,7 @@ func GetAllTodo(w http.ResponseWriter, r *http.Request) {
 	}
 	userId := r.Context().Value("userId").(int)
 
-	rows, err := database.DB.Query(
+	rows, err := connection.DB.Query(
 		"SELECT t_id, title, current_status FROM todos WHERE u_id = $1",
 		userId,
 	)
